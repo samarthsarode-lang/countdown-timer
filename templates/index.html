@@ -8,7 +8,179 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <style>
+    /* ── Design Tokens ─────────────────────────────────────────── */
+    :root {
+      --bg-base:        #080814;
+      --bg-card:        rgba(255,255,255,0.04);
+      --bg-card-hover:  rgba(255,255,255,0.07);
+      --border:         rgba(255,255,255,0.09);
+      --text-primary:   #eef0ff;
+      --text-secondary: #8892b0;
+      --accent-1:       #a78bfa;
+      --accent-2:       #818cf8;
+      --accent-3:       #38bdf8;
+      --danger:         #f87171;
+      --success:        #34d399;
+      --ring-track:     rgba(255,255,255,0.06);
+      --ring-circum:    753.98;
+      --ease:           cubic-bezier(0.4,0,0.2,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      padding: 1.5rem;
+    }
+
+    /* ── Animated Background Blobs ──────────────────────────────── */
+    .bg-blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(130px);
+      opacity: 0.16;
+      pointer-events: none;
+      z-index: 0;
+      animation: blobFloat 12s ease-in-out infinite alternate;
+    }
+    .blob-1 { width:650px;height:650px;background:radial-gradient(circle,#a78bfa,transparent 70%);top:-220px;left:-220px;animation-duration:13s; }
+    .blob-2 { width:520px;height:520px;background:radial-gradient(circle,#38bdf8,transparent 70%);bottom:-160px;right:-160px;animation-duration:16s;animation-delay:-5s; }
+    .blob-3 { width:420px;height:420px;background:radial-gradient(circle,#818cf8,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation-duration:10s;animation-delay:-3s; }
+    @keyframes blobFloat {
+      from { transform: scale(1) translate(0,0); }
+      to   { transform: scale(1.12) translate(30px, 25px); }
+    }
+
+    /* ── Layout ─────────────────────────────────────────────────── */
+    .container { position:relative;z-index:1;width:100%;max-width:530px;display:flex;flex-direction:column;gap:1.5rem; }
+
+    /* ── Header ─────────────────────────────────────────────────── */
+    header { text-align:center; }
+    .logo { font-size:3rem;margin-bottom:0.4rem;animation:softPulse 3.5s ease-in-out infinite; }
+    @keyframes softPulse { 0%,100%{transform:scale(1);}50%{transform:scale(1.07);} }
+    h1 {
+      font-size:2.4rem;font-weight:800;
+      background:linear-gradient(135deg,var(--accent-1),var(--accent-2),var(--accent-3));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+      letter-spacing:-0.5px;
+    }
+    .subtitle { color:var(--text-secondary);font-size:0.9rem;font-weight:300;margin-top:0.3rem; }
+
+    /* ── Cards ──────────────────────────────────────────────────── */
+    .card {
+      background:var(--bg-card);border:1px solid var(--border);border-radius:24px;
+      padding:2rem;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+      transition:background 0.3s var(--ease),box-shadow 0.3s var(--ease);
+    }
+    .card:hover { background:var(--bg-card-hover); }
+    .card-title { font-size:0.8rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:2px;margin-bottom:1.5rem; }
+
+    /* ── Time Inputs ────────────────────────────────────────────── */
+    .time-inputs { display:flex;align-items:flex-end;justify-content:center;gap:0.5rem;margin-bottom:1.5rem; }
+    .time-field { display:flex;flex-direction:column;align-items:center;gap:0.5rem;flex:1; }
+    .time-field label { font-size:0.72rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1.2px; }
+    .time-field input[type="number"] {
+      width:100%;max-width:110px;padding:1rem 0.5rem;text-align:center;
+      font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;
+      color:var(--text-primary);background:rgba(255,255,255,0.05);
+      border:2px solid var(--border);border-radius:16px;outline:none;
+      transition:border-color 0.25s,background 0.25s,box-shadow 0.25s;
+      -moz-appearance:textfield;appearance:textfield;
+    }
+    .time-field input[type="number"]::-webkit-inner-spin-button,
+    .time-field input[type="number"]::-webkit-outer-spin-button { -webkit-appearance:none; }
+    .time-field input[type="number"]:focus {
+      border-color:var(--accent-1);background:rgba(167,139,250,0.08);
+      box-shadow:0 0 0 4px rgba(167,139,250,0.14);
+    }
+    .separator { font-size:2.2rem;font-weight:700;color:var(--accent-2);padding-bottom:0.9rem;user-select:none; }
+
+    /* ── Preset Chips ───────────────────────────────────────────── */
+    .presets { display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap; }
+    .presets-label { font-size:0.78rem;color:var(--text-secondary);font-weight:600;flex-shrink:0; }
+    .preset-btn {
+      background:rgba(255,255,255,0.05);border:1px solid var(--border);
+      color:var(--text-primary);font-family:'Outfit',sans-serif;font-size:0.78rem;font-weight:600;
+      padding:0.38rem 0.9rem;border-radius:100px;cursor:pointer;
+      transition:background 0.2s,border-color 0.2s,transform 0.15s,box-shadow 0.2s;
+    }
+    .preset-btn:hover { background:rgba(167,139,250,0.18);border-color:var(--accent-1);transform:translateY(-2px);box-shadow:0 4px 14px rgba(167,139,250,0.22); }
+    .preset-btn:active { transform:translateY(0); }
+
+    /* ── Timer Ring ─────────────────────────────────────────────── */
+    .timer-card { display:flex;flex-direction:column;align-items:center;gap:1.75rem; }
+    .ring-container { position:relative;width:280px;height:280px; }
+    .progress-ring { width:100%;height:100%;transform:rotate(-90deg); }
+    .ring-track { fill:none;stroke:var(--ring-track);stroke-width:10; }
+    .ring-progress {
+      fill:none;stroke:url(#ringGradient);stroke-width:10;stroke-linecap:round;
+      stroke-dasharray:753.98;stroke-dashoffset:0;
+      transition:stroke-dashoffset 1s linear,stroke 0.5s;
+    }
+    .time-display { position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.4rem; }
+    .time-digits {
+      font-family:'JetBrains Mono',monospace;font-size:2.9rem;font-weight:700;letter-spacing:2px;
+      background:linear-gradient(135deg,var(--accent-1),var(--accent-3));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    }
+    .time-label { font-size:0.82rem;font-weight:600;color:var(--text-secondary);letter-spacing:1.5px;text-transform:uppercase; }
+
+    /* ── Control Buttons ────────────────────────────────────────── */
+    .controls { display:flex;align-items:center;gap:1.2rem; }
+    .btn { cursor:pointer;border:none;outline:none;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:transform 0.2s,box-shadow 0.25s,background 0.25s; }
+    .btn:active { transform:scale(0.92) !important; }
+    .btn-primary { width:76px;height:76px;background:linear-gradient(135deg,var(--accent-1),var(--accent-2));color:#fff;box-shadow:0 8px 32px rgba(167,139,250,0.38); }
+    .btn-primary:hover { transform:scale(1.1);box-shadow:0 14px 44px rgba(167,139,250,0.55); }
+    .btn-secondary { width:56px;height:56px;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text-secondary); }
+    .btn-secondary:hover { background:rgba(255,255,255,0.11);color:var(--text-primary);transform:scale(1.07); }
+
+    /* ── Progress Bar ───────────────────────────────────────────── */
+    .linear-progress-container { width:100%;height:6px;background:rgba(255,255,255,0.05);border-radius:100px;overflow:hidden; }
+    .linear-progress { height:100%;width:100%;background:linear-gradient(90deg,var(--accent-1),var(--accent-2),var(--accent-3));border-radius:100px;transform-origin:left;transition:transform 1s linear; }
+
+    /* ── Alert Banner ───────────────────────────────────────────── */
+    .alert-banner { display:none;align-items:center;gap:1rem;background:linear-gradient(135deg,rgba(52,211,153,0.12),rgba(56,189,248,0.08));border:1px solid rgba(52,211,153,0.3);border-radius:18px;padding:1.25rem 1.5rem;animation:slideUp 0.45s var(--ease); }
+    .alert-banner.visible { display:flex; }
+    @keyframes slideUp { from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);} }
+    .alert-icon { font-size:2rem; }
+    .alert-text { flex:1;display:flex;flex-direction:column;gap:0.15rem; }
+    .alert-text strong { font-size:1.05rem;color:var(--success); }
+    .alert-text span   { font-size:0.83rem;color:var(--text-secondary); }
+    .alert-dismiss { background:transparent;border:none;color:var(--text-secondary);font-size:1.1rem;cursor:pointer;padding:0.25rem 0.4rem;border-radius:8px;transition:background 0.2s,color 0.2s; }
+    .alert-dismiss:hover { background:rgba(255,255,255,0.1);color:var(--text-primary); }
+
+    /* ── State Modifiers ────────────────────────────────────────── */
+    .ring-progress.finished { stroke:var(--success) !important; }
+    .time-digits.finished { background:linear-gradient(135deg,var(--success),var(--accent-3));-webkit-background-clip:text;background-clip:text; }
+    @keyframes urgentPulse { 0%,100%{transform:scale(1);}50%{transform:scale(1.05);} }
+    .time-digits.urgent { animation:urgentPulse 0.65s ease-in-out infinite;background:linear-gradient(135deg,var(--danger),#fb923c);-webkit-background-clip:text;background-clip:text; }
+    .ring-progress.urgent { stroke:var(--danger) !important; }
+
+    /* ── Footer ─────────────────────────────────────────────────── */
+    .site-footer { text-align:center;font-size:0.82rem;color:var(--text-secondary);padding:0.5rem 0 1rem; }
+    .site-footer .heart { color:#f87171; }
+    .tech-badge { display:inline-block;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:6px;padding:0.1rem 0.45rem;font-size:0.75rem;font-weight:600;margin:0 2px;color:var(--accent-1); }
+
+    /* ── Responsive ─────────────────────────────────────────────── */
+    @media (max-width:480px) {
+      body { padding:1rem; }
+      h1 { font-size:1.8rem; }
+      .time-field input[type="number"] { font-size:1.5rem;padding:0.75rem 0.3rem; }
+      .time-digits { font-size:2.1rem; }
+      .ring-container { width:240px;height:240px; }
+      .btn-primary  { width:64px;height:64px; }
+      .btn-secondary { width:48px;height:48px; }
+    }
+  </style>
 </head>
 <body>
 
@@ -19,17 +191,16 @@
 
   <div class="container">
 
-    <!-- ── Header ── -->
+    <!-- Header -->
     <header>
       <div class="logo">⏱</div>
       <h1>Countdown Timer</h1>
       <p class="subtitle">Set your time &amp; stay on track — powered by Python &amp; Flask</p>
     </header>
 
-    <!-- ── Input Card ── -->
+    <!-- Input Card -->
     <div class="card input-card">
       <h2 class="card-title">Set Timer</h2>
-
       <div class="time-inputs">
         <div class="time-field">
           <label for="hours">Hours</label>
@@ -46,8 +217,6 @@
           <input type="number" id="seconds" min="0" max="59" value="10" />
         </div>
       </div>
-
-      <!-- Quick preset chips -->
       <div class="presets">
         <span class="presets-label">Quick Set:</span>
         <button class="preset-btn" data-seconds="60">1 min</button>
@@ -58,10 +227,8 @@
       </div>
     </div>
 
-    <!-- ── Timer Display Card ── -->
+    <!-- Timer Display Card -->
     <div class="card timer-card">
-
-      <!-- Circular ring progress -->
       <div class="ring-container">
         <svg class="progress-ring" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -72,61 +239,51 @@
             </linearGradient>
             <filter id="glow">
               <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
-              <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
+              <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
             </filter>
           </defs>
           <circle class="ring-track"    cx="140" cy="140" r="120" />
           <circle class="ring-progress" id="ring-progress" cx="140" cy="140" r="120" filter="url(#glow)" />
         </svg>
-
         <div class="time-display">
           <span class="time-digits" id="timer-text">00:00:10</span>
           <span class="time-label"  id="timer-label">Ready</span>
         </div>
       </div>
 
-      <!-- Control Buttons -->
+      <!-- Controls -->
       <div class="controls">
         <button class="btn btn-secondary" id="reset-btn" title="Reset">
-          <!-- Reset icon -->
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-               fill="none" stroke="currentColor" stroke-width="2.5"
-               stroke-linecap="round" stroke-linejoin="round">
+               fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
             <path d="M3 3v5h5"/>
           </svg>
         </button>
 
         <button class="btn btn-primary" id="start-btn" title="Start / Pause">
-          <svg id="play-icon" xmlns="http://www.w3.org/2000/svg"
-               width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+          <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
             <polygon points="5 3 19 12 5 21 5 3"/>
           </svg>
-          <svg id="pause-icon" xmlns="http://www.w3.org/2000/svg"
-               width="28" height="28" viewBox="0 0 24 24" fill="currentColor" style="display:none">
+          <svg id="pause-icon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" style="display:none">
             <rect x="6" y="4" width="4" height="16"/>
             <rect x="14" y="4" width="4" height="16"/>
           </svg>
         </button>
 
         <button class="btn btn-secondary" id="stop-btn" title="Stop">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-               viewBox="0 0 24 24" fill="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <rect x="3" y="3" width="18" height="18" rx="2"/>
           </svg>
         </button>
       </div>
 
-      <!-- Linear progress bar -->
       <div class="linear-progress-container">
         <div class="linear-progress" id="linear-progress"></div>
       </div>
     </div>
 
-    <!-- ── Alert Banner (shown on completion) ── -->
+    <!-- Alert Banner -->
     <div class="alert-banner" id="alert-banner">
       <div class="alert-icon">🎉</div>
       <div class="alert-text">
@@ -136,7 +293,7 @@
       <button class="alert-dismiss" id="alert-dismiss">✕</button>
     </div>
 
-    <!-- ── Footer ── -->
+    <!-- Footer -->
     <footer class="site-footer">
       Built with <span class="heart">♥</span> using
       <span class="tech-badge">Python</span>
@@ -146,6 +303,206 @@
 
   </div><!-- /container -->
 
-  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <script>
+    // ── DOM ────────────────────────────────────────────────────────
+    const hoursInput     = document.getElementById('hours');
+    const minutesInput   = document.getElementById('minutes');
+    const secondsInput   = document.getElementById('seconds');
+    const startBtn       = document.getElementById('start-btn');
+    const resetBtn       = document.getElementById('reset-btn');
+    const stopBtn        = document.getElementById('stop-btn');
+    const timerText      = document.getElementById('timer-text');
+    const timerLabel     = document.getElementById('timer-label');
+    const ringProgress   = document.getElementById('ring-progress');
+    const linearProgress = document.getElementById('linear-progress');
+    const alertBanner    = document.getElementById('alert-banner');
+    const alertDismiss   = document.getElementById('alert-dismiss');
+    const playIcon       = document.getElementById('play-icon');
+    const pauseIcon      = document.getElementById('pause-icon');
+    const presetBtns     = document.querySelectorAll('.preset-btn');
+
+    // ── State ──────────────────────────────────────────────────────
+    let totalSeconds     = 0;
+    let remainingSeconds = 0;
+    let timerInterval    = null;
+    let isRunning        = false;
+    let isPaused         = false;
+    const RING_CIRCUM    = 753.98;
+
+    // ── Web Audio API alarm ────────────────────────────────────────
+    let audioCtx = null;
+    function getAudioCtx() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      return audioCtx;
+    }
+    function playAlarm() {
+      const ctx = getAudioCtx();
+      const notes = [
+        { freq:880,  dur:0.20, at:0.00 },
+        { freq:988,  dur:0.20, at:0.22 },
+        { freq:1047, dur:0.35, at:0.44 },
+        { freq:880,  dur:0.20, at:0.85 },
+        { freq:988,  dur:0.20, at:1.07 },
+        { freq:1175, dur:0.55, at:1.29 },
+      ];
+      notes.forEach(({ freq, dur, at }) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + at);
+        gain.gain.setValueAtTime(0,   ctx.currentTime + at);
+        gain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + at + 0.03);
+        gain.gain.linearRampToValueAtTime(0,   ctx.currentTime + at + dur);
+        osc.start(ctx.currentTime + at);
+        osc.stop(ctx.currentTime + at + dur + 0.05);
+      });
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────
+    const pad = n => String(n).padStart(2, '0');
+    function formatTime(secs) {
+      return `${pad(Math.floor(secs/3600))}:${pad(Math.floor((secs%3600)/60))}:${pad(secs%60)}`;
+    }
+    function updateRing(f) {
+      f = Math.max(0, Math.min(1, f));
+      ringProgress.style.strokeDashoffset = RING_CIRCUM * (1 - f);
+      linearProgress.style.transform = `scaleX(${f})`;
+    }
+    function setUrgent(on) {
+      timerText.classList.toggle('urgent', on);
+      ringProgress.classList.toggle('urgent', on);
+      if (on) { timerText.classList.remove('finished'); ringProgress.classList.remove('finished'); }
+    }
+    function showAlert() { alertBanner.classList.add('visible'); }
+    function hideAlert() { alertBanner.classList.remove('visible'); }
+
+    // ── Core Timer ─────────────────────────────────────────────────
+    function startTimer() {
+      if (remainingSeconds <= 0) return;
+      isRunning = true; isPaused = false;
+      timerLabel.textContent  = 'Running';
+      playIcon.style.display  = 'none';
+      pauseIcon.style.display = 'block';
+      timerInterval = setInterval(() => {
+        remainingSeconds--;
+        timerText.textContent = formatTime(remainingSeconds);
+        updateRing(totalSeconds > 0 ? remainingSeconds / totalSeconds : 0);
+        setUrgent(remainingSeconds <= 10 && remainingSeconds > 0);
+        if (remainingSeconds <= 0) {
+          clearInterval(timerInterval); timerInterval = null; isRunning = false;
+          timerText.textContent  = '00:00:00';
+          timerLabel.textContent = "Time's Up!";
+          setUrgent(false);
+          timerText.classList.add('finished');
+          ringProgress.classList.add('finished');
+          updateRing(0);
+          playIcon.style.display  = 'block';
+          pauseIcon.style.display = 'none';
+          playAlarm(); showAlert();
+        }
+      }, 1000);
+    }
+    function pauseTimer() {
+      if (!isRunning) return;
+      clearInterval(timerInterval); timerInterval = null;
+      isRunning = false; isPaused = true;
+      timerLabel.textContent  = 'Paused';
+      playIcon.style.display  = 'block';
+      pauseIcon.style.display = 'none';
+    }
+    function resetTimer() {
+      clearInterval(timerInterval); timerInterval = null;
+      isRunning = false; isPaused = false;
+      remainingSeconds       = totalSeconds;
+      timerText.textContent  = formatTime(remainingSeconds);
+      timerLabel.textContent = remainingSeconds > 0 ? 'Ready' : '--:--:--';
+      updateRing(1); setUrgent(false);
+      timerText.classList.remove('finished'); ringProgress.classList.remove('finished');
+      playIcon.style.display  = 'block'; pauseIcon.style.display = 'none';
+      hideAlert();
+    }
+    function stopTimer() {
+      clearInterval(timerInterval); timerInterval = null;
+      isRunning = false; isPaused = false; remainingSeconds = 0;
+      timerText.textContent  = '00:00:00';
+      timerLabel.textContent = 'Stopped';
+      updateRing(0); setUrgent(false);
+      timerText.classList.remove('finished','urgent');
+      ringProgress.classList.remove('finished','urgent');
+      playIcon.style.display  = 'block'; pauseIcon.style.display = 'none';
+      hideAlert();
+    }
+
+    // ── Inputs ─────────────────────────────────────────────────────
+    function readInputs() {
+      return (parseInt(hoursInput.value)||0)*3600 + (parseInt(minutesInput.value)||0)*60 + (parseInt(secondsInput.value)||0);
+    }
+    function clamp(inp, max) {
+      let v = parseInt(inp.value);
+      if (isNaN(v)||v<0) v=0; if(v>max) v=max; inp.value=v;
+    }
+    function flashError() {
+      document.querySelectorAll('.time-field input').forEach(inp => {
+        inp.style.borderColor='#f87171'; inp.style.boxShadow='0 0 0 4px rgba(248,113,113,0.2)';
+        setTimeout(() => { inp.style.borderColor=''; inp.style.boxShadow=''; }, 900);
+      });
+    }
+
+    // ── Events ─────────────────────────────────────────────────────
+    startBtn.addEventListener('click', () => {
+      getAudioCtx();
+      if (isRunning) { pauseTimer(); return; }
+      if (isPaused)  { startTimer(); return; }
+      totalSeconds = readInputs(); remainingSeconds = totalSeconds;
+      if (totalSeconds <= 0) { flashError(); return; }
+      timerText.textContent = formatTime(remainingSeconds);
+      updateRing(1); hideAlert();
+      timerText.classList.remove('finished'); ringProgress.classList.remove('finished');
+      startTimer();
+    });
+    resetBtn.addEventListener('click', () => { totalSeconds=readInputs(); remainingSeconds=totalSeconds; resetTimer(); });
+    stopBtn.addEventListener('click', stopTimer);
+    alertDismiss.addEventListener('click', hideAlert);
+    hoursInput.addEventListener('change',   () => clamp(hoursInput, 23));
+    minutesInput.addEventListener('change', () => clamp(minutesInput, 59));
+    secondsInput.addEventListener('change', () => clamp(secondsInput, 59));
+    [hoursInput, minutesInput, secondsInput].forEach(inp =>
+      inp.addEventListener('input', () => {
+        if (!isRunning && !isPaused) {
+          const s = readInputs();
+          timerText.textContent  = formatTime(s);
+          timerLabel.textContent = s > 0 ? 'Ready' : '--:--:--';
+          updateRing(1);
+        }
+      })
+    );
+    presetBtns.forEach(btn =>
+      btn.addEventListener('click', () => {
+        if (isRunning) return;
+        const secs = parseInt(btn.dataset.seconds);
+        hoursInput.value   = Math.floor(secs/3600);
+        minutesInput.value = Math.floor((secs%3600)/60);
+        secondsInput.value = secs%60;
+        totalSeconds = secs;
+        if (!isPaused) {
+          remainingSeconds       = secs;
+          timerText.textContent  = formatTime(secs);
+          timerLabel.textContent = 'Ready';
+          updateRing(1);
+        }
+      })
+    );
+
+    // ── Init ───────────────────────────────────────────────────────
+    (function init() {
+      ringProgress.style.strokeDasharray  = RING_CIRCUM;
+      ringProgress.style.strokeDashoffset = 0;
+      const s = readInputs();
+      totalSeconds = s; remainingSeconds = s;
+      timerText.textContent  = formatTime(s);
+      timerLabel.textContent = s > 0 ? 'Ready' : '--:--:--';
+    })();
+  </script>
 </body>
 </html>
